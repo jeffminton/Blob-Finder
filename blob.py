@@ -33,9 +33,9 @@ def main():
 	print "setting props"
 	cv.SetCaptureProperty(cap, cv.CV_CAP_PROP_FRAME_WIDTH, 320)
 	cv.SetCaptureProperty(cap, cv.CV_CAP_PROP_FRAME_HEIGHT, 240)
-	#cv.SetCaptureProperty(cap, cv.CV_CAP_PROP_EXPOSURE, 5)
-	#expo = cv.GetCaptureProperty(cap, cv.CV_CAP_PROP_EXPOSURE)
-	#print expo
+	#~ cv.SetCaptureProperty(cap, cv.CV_CAP_PROP_EXPOSURE, -.2)
+	#~ expo = cv.GetCaptureProperty(cap, cv.CV_CAP_PROP_EXPOSURE)
+	#~ print expo
 	finished = False
 	while(finished == False):
 		orig = cv.QueryFrame(cap)
@@ -49,7 +49,7 @@ def main():
 	#~ print "getting next frame"
 	#~ orig = cv.QueryFrame(cap)
 	img = cv.CreateImage((320, 240), cv.IPL_DEPTH_8U, 3)
-	cv.Smooth(orig, img, cv.CV_GAUSSIAN, 5) 
+	cv.Smooth(orig, img, cv.CV_GAUSSIAN, 3) 
 	
 	blobImg, region2color, region2pix = findBlob(img, 10)
 	
@@ -59,6 +59,10 @@ def main():
 	color = (75, 0, 0) 
 	region = findColor(color, blobImg, region2color, region2pix)
 	print "best color: ", region2color[region]
+	
+	regionMid = midMass(region2pix, region)
+	print "Middle of Region: ", regionMid
+	
 	black = False
 	for pix in region2pix[region]:
 		if(black == True):
@@ -67,6 +71,9 @@ def main():
 		else:
 			blobImg[pix[0], pix[1]] = (255, 255, 255)
 			black = True
+	
+	blobImg[regionMid[0], regionMid[1]] = (0, 0, 255)
+	
 	cv.ShowImage("orig", orig)
 	cv.ShowImage("img", img)
 	cv.ShowImage("blobimg", blobImg)
@@ -81,6 +88,28 @@ def main():
 	cv.DestroyWindow("orig")
 	cv.DestroyWindow("img")
 	cv.DestroyWindow("blobimg")
+
+
+def midMass(region2pix, region):
+	maxX = region2pix[region][0][1]
+	minX = region2pix[region][0][1]
+	maxY = region2pix[region][0][0]
+	minY = region2pix[region][0][0]
+	
+	for coord in region2pix[region]:
+		if(coord[1] > maxX):
+			maxX = coord[1]
+		if(coord[1] < minX):
+			minX = coord[1]
+		if(coord[0] > maxY):
+			maxY = coord[0]
+		if(coord[0] < minY):
+			minY = coord[0]
+			
+	midX = (minX + maxX) / 2
+	midY = (minY + maxY) / 2
+	
+	return (midY, midX)
 
 def findColor(color, blobImg, region2color, region2pix):
 	bestKey = None
