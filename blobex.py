@@ -24,14 +24,14 @@ import cv
 import time
 from unionfind import *
 
-class blobit():
+class blobitex():
 	def __init__(self):
 		self.width = 320
 		self.height = 240
 		self.imgCnt = 0
 		#img = cv.LoadImage("0.bmp")
-		#~ cv.NamedWindow("orig")
-		#~ cv.NamedWindow("img")
+		cv.NamedWindow("orig")
+		cv.NamedWindow("img")
 		cv.NamedWindow("blobimg")
 		self.cap = cv.CaptureFromCAM(0)
 		#~ print "setting props"
@@ -122,6 +122,46 @@ class blobit():
 		
 		return (midY, midX)
 
+	def findColorEx(self):
+		orig = cv.QueryFrame(self.cap)
+		orig = cv.QueryFrame(self.cap)
+		
+		img = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U, 3)
+		cv.Smooth(orig, img, cv.CV_GAUSSIAN, 5)
+		
+		blobImg, region2color, region2pix = self.findBlob(img, 9)
+		
+		color = (75, 0, 0)
+		region = self.findColor(color, blobImg, region2color, region2pix)
+		
+		if(region != None):
+			print "best color: ", region2color[region]
+			
+			regionMid = self.midMass(region2pix, region)
+			print "Middle of Region: ", regionMid
+			
+			black = False
+			for pix in region2pix[region]:
+				if(black == True):
+					blobImg[pix[0], pix[1]] = (0, 0, 0)
+					black = False
+				else:
+					blobImg[pix[0], pix[1]] = (255, 255, 255)
+					black = True
+			
+			blobImg[regionMid[0], regionMid[1]] = (0, 0, 255)
+		
+		cv.ShowImage("orig", orig)
+		cv.ShowImage("img", img)
+		cv.ShowImage("blobimg", blobImg)
+		
+		finished = False
+		
+		while(finished == False):
+			k = cv.WaitKey(5)
+			if k % 0x100 == 27:
+				finished = True
+	
 	def findColor(self, color, blobImg, region2color, region2pix):
 		bestKey = None
 		bestColor = None
@@ -153,6 +193,28 @@ class blobit():
 					
 		return bestKey
 
+	
+	def findBlobEx(self):
+		orig = cv.QueryFrame(self.cap)
+		orig = cv.QueryFrame(self.cap)
+		
+		img = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U, 3)
+		cv.Smooth(orig, img, cv.CV_GAUSSIAN, 5)
+		
+		blobImg, region2color, region2pix = self.findBlob(img, 9)
+		
+		cv.ShowImage("orig", orig)
+		cv.ShowImage("img", img)
+		cv.ShowImage("blobimg", blobImg)
+		
+		finished = False
+		
+		while(finished == False):
+			k = cv.WaitKey(5)
+			if k % 0x100 == 27:
+				finished = True
+		
+	
 	def findBlob(self, img, threshold):
 		#pixMap = [(0, -1), (-1, 0), (0, 1), (1, 0)]
 		#pixMap = [(0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1)]
